@@ -1,0 +1,22 @@
+name: Whitelisted Clients Report (DEMO)
+
+on:
+  schedule:
+    - cron: '0 13 * * 1'  # Every Monday at 1:00 PM UTC — same as production
+  workflow_dispatch:        # Manual trigger for demonstrations
+
+jobs:
+  run-demo-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Run demo report
+        run: python whitelisted_report_demo.py

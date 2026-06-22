@@ -19,4 +19,4 @@ jobs:
           python-version: '3.11'
 
       - name: Run demo report
-        run: python whitelisted_report_demo.py
+        run: python Whitelsited_report_demo.py

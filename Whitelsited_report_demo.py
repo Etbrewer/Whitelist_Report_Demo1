@@ -1,10 +1,16 @@
+import requests
 from datetime import datetime
 
 # =============================================================================
-# DEMO MODE — No real API calls, no real credentials, no real data
-# This script simulates exactly what the production version does,
-# using fake data to demonstrate the report output and email format.
+# DEMO MODE — No real Meraki API calls, no real credentials.
+# This script simulates the Meraki data pull, builds the HTML report,
+# and sends it to your Power Automate flow so you can test the real
+# email layout end-to-end.
 # =============================================================================
+
+# TODO: before this goes into GitHub Actions, move this into a secret
+# (e.g. os.environ["FLOW_URL"]) instead of leaving it hardcoded here.
+FLOW_URL = "https://default4469a43f748145e9b33274e9101b05.c8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/790bba7ecf8846f98a5b1df5278f1403/triggers/manual/paths/invoke?api-version=1"
 
 MOCK_NETWORKS = [
     {"id": "N_000000000001", "name": "Store #001 - New York"},
@@ -25,6 +31,7 @@ MOCK_WHITELISTED_CLIENTS = [
     {"name": "ManagerLaptop",       "mac": "aa:bb:cc:11:22:08", "network": "Store #005 - Miami"},
 ]
 
+
 def simulate_api_calls():
     print("=" * 60)
     print("DEMO MODE — Simulating Meraki API calls")
@@ -38,6 +45,7 @@ def simulate_api_calls():
         if clients:
             print(f"             Found {len(clients)} whitelisted client(s) in {network['name']}")
     print()
+
 
 def build_html(whitelisted, run_date):
     rows = ""
@@ -61,7 +69,15 @@ def build_html(whitelisted, run_date):
             <strong>DEMO MODE:</strong> This report uses simulated data.
             No real Meraki API calls were made.
         </p>
-        <table><tr><th>#</th><th>Client Name</th><th>MAC Address</th><th>Network</th></tr></table>
+        <table style="border-collapse: collapse; width: 100%;">
+            <tr style="background-color:#1a73e8; color:white;">
+                <th style="padding:6px 12px; text-align:left;">#</th>
+                <th style="padding:6px 12px; text-align:left;">Client Name</th>
+                <th style="padding:6px 12px; text-align:left;">MAC Address</th>
+                <th style="padding:6px 12px; text-align:left;">Network</th>
+            </tr>
+            {rows}
+        </table>
         <br/>
         <p style="font-size:12px; color:#888;">
             This report was generated automatically via GitHub Actions (Demo Mode).
@@ -70,19 +86,30 @@ def build_html(whitelisted, run_date):
     </html>
     """
 
-def print_email_preview(html, run_date):
+
+def send_to_flow(html, run_date, networks_scanned, whitelisted_count):
+    payload = {
+        "subject": f"Weekly Whitelisted Clients Report \u2014 {run_date}",
+        "htmlBody": html,
+        "networksScanned": networks_scanned,
+        "whitelistedClients": whitelisted_count,
+    }
+
     print("=" * 60)
-    print("EMAIL PREVIEW (would be sent in production)")
+    print("SENDING TO POWER AUTOMATE FLOW")
     print("=" * 60)
-    print(f"  To:      [recipients from EMAIL_TO secret]")
-    print(f"  Subject: Weekly Whitelisted Clients Report — {run_date}")
-    print(f"  Body:    HTML formatted table (see Actions log artifact)")
+
+    response = requests.post(FLOW_URL, json=payload, timeout=30)
+
+    print(f"  Status code: {response.status_code}")
+    try:
+        print(f"  Response body: {response.json()}")
+    except ValueError:
+        print(f"  Response body: {response.text}")
     print()
-    print("HTML Report Preview (first 500 chars):")
-    print("-" * 60)
-    print(html[:500])
-    print("...")
-    print("-" * 60)
+
+    return response
+
 
 if __name__ == "__main__":
     run_date = datetime.utcnow().strftime("%B %d, %Y")
@@ -105,9 +132,7 @@ if __name__ == "__main__":
     print(f"  Whitelisted clients:    {len(MOCK_WHITELISTED_CLIENTS)}")
     print()
 
-    # Preview the email instead of sending it
-    print_email_preview(html, run_date)
+    # Actually send it to the flow instead of just previewing it
+    send_to_flow(html, run_date, len(MOCK_NETWORKS), len(MOCK_WHITELISTED_CLIENTS))
 
-    print()
     print("Demo completed successfully.")
-    print("In production, this report would be emailed to all recipients.")

@@ -10,7 +10,7 @@ from datetime import datetime
 
 # TODO: before this goes into GitHub Actions, move this into a secret
 # (e.g. os.environ["FLOW_URL"]) instead of leaving it hardcoded here.
-FLOW_URL = "https://default4469a43f748145e9b33274e9101b05.c8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/790bba7ecf8846f98a5b1df5278f1403/triggers/manual/paths/invoke?api-version=1"
+FLOW_URL = "https://default4469a43f748145e9b33274e9101b05.c8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/790bba7ecf8846f98a5b1df5278f1403/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=jozIRZ6yfU8u6XPHnaM7MvBcZgAxwByIpLDwh8N-XVU"
 
 MOCK_NETWORKS = [
     {"id": "N_000000000001", "name": "Store #001 - New York"},
